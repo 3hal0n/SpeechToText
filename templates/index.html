@@ -4,296 +4,224 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech to Text App</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #0d3b66;
+            --secondary: #00b4d8;
+            --accent: #90e0ef;
+            --background: #f6f9fb;
+            --surface: #ffffff;
+            --error: #ff6b6b;
+            --success: #43aa8b;
+            --text-main: #22223b;
+            --text-light: #6c757d;
         }
-
+        html, body {
+            height: 100%;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            font-family: 'Montserrat', 'Roboto', Arial, sans-serif;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 0;
         }
-
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            max-width: 600px;
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(13, 59, 102, 0.15);
+            padding: 48px 36px 36px 36px;
+            max-width: 480px;
             width: 100%;
+            margin: 40px 0;
         }
-
         h1 {
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: var(--primary);
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
+            margin-bottom: 32px;
+            letter-spacing: 1px;
         }
-
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
+        .tab-container {
+            margin-bottom: 24px;
+        }
+        .tab-buttons {
+            display: flex;
+            background: var(--background);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            background: none;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--secondary);
+            color: #fff;
+        }
+        .tab-btn:not(.active):hover {
+            background: var(--accent);
+            color: var(--primary);
+        }
+        .upload-area, .record-area {
+            border: 2px dashed var(--secondary);
+            border-radius: 16px;
+            padding: 36px 20px;
             text-align: center;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
+            margin-bottom: 24px;
+            background: var(--background);
+            transition: border-color 0.2s, background 0.2s;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
         }
-
-        .upload-area:hover {
-            border-color: #764ba2;
-            background: rgba(102, 126, 234, 0.05);
+        .upload-area.dragover, .record-area.recording {
+            border-color: var(--primary);
+            background: var(--accent);
         }
-
-        .upload-area.dragover {
-            border-color: #764ba2;
-            background: rgba(102, 126, 234, 0.1);
-            transform: scale(1.02);
+        .upload-icon, .record-icon {
+            font-size: 3.2rem;
+            color: var(--secondary);
+            margin-bottom: 16px;
         }
-
-        .upload-icon {
-            font-size: 4rem;
-            color: #667eea;
-            margin-bottom: 20px;
+        .record-area.recording .record-icon {
+            color: var(--error);
+            animation: pulse 1.2s infinite;
         }
-
-        .upload-text {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 20px;
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
         }
-
+        .upload-text, .record-text {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 18px;
+        }
+        .upload-btn, .record-btn, .stop-btn, .copy-btn {
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 24px;
+            font-size: 1rem;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            margin-bottom: 0;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,180,216,0.08);
+        }
+        .upload-btn:hover, .record-btn:hover, .stop-btn:hover, .copy-btn:hover {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        }
         .file-input {
             display: none;
         }
-
-        .upload-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
         .file-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--accent);
             border-radius: 10px;
+            color: var(--primary);
+            font-size: 1rem;
             display: none;
         }
-
+        .supported-formats {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
         .loading {
             display: none;
             text-align: center;
-            margin: 20px 0;
+            margin: 18px 0;
         }
-
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid var(--secondary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             animation: spin 1s linear infinite;
             margin: 0 auto 10px;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         .result {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid #667eea;
+            margin-top: 24px;
+            padding: 20px 18px;
+            background: var(--background);
+            border-radius: 16px;
+            border-left: 5px solid var(--secondary);
             display: none;
         }
-
         .result h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 1.15rem;
+            font-weight: 600;
         }
-
         .transcription-text {
-            font-size: 1.1rem;
+            font-size: 1.08rem;
             line-height: 1.6;
-            color: #555;
-            background: white;
-            padding: 15px;
+            color: var(--text-main);
+            background: var(--surface);
+            padding: 14px;
             border-radius: 10px;
             border: 1px solid #e0e0e0;
-            min-height: 100px;
+            min-height: 80px;
             white-space: pre-wrap;
         }
-
-        .error {
+        .result.error, .error {
             background: #ffe6e6;
-            border-left-color: #ff4444;
+            border-left-color: var(--error);
         }
-
-        .copy-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-
-        .copy-btn:hover {
-            background: #218838;
-        }
-
         .audio-controls {
-            margin-top: 15px;
+            margin-top: 12px;
             display: none;
         }
-
         audio {
             width: 100%;
-            margin-top: 10px;
+            margin-top: 8px;
         }
-
-        .tab-container {
-            margin-bottom: 30px;
-        }
-
-        .tab-buttons {
-            display: flex;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 5px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            background: transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            color: #666;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .record-area {
-            border: 3px dashed #28a745;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .record-area.recording {
-            border-color: #dc3545;
-            background: rgba(220, 53, 69, 0.05);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        .record-icon {
-            font-size: 4rem;
-            color: #28a745;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .record-area.recording .record-icon {
-            color: #dc3545;
-            animation: bounce 1s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
-        }
-
-        .record-text {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .record-btn {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .record-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-        }
-
         .recording-controls {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 12px;
         }
-
         .recording-time {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            color: #dc3545;
-            margin-bottom: 15px;
+            color: var(--error);
+            margin-bottom: 10px;
         }
-
         .recording-visualizer {
-            height: 60px;
-            background: #fff;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            height: 48px;
+            background: var(--surface);
+            border-radius: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -301,91 +229,55 @@
             position: relative;
             overflow: hidden;
         }
-
         .visualizer-bar {
             width: 4px;
-            background: #667eea;
+            background: var(--secondary);
             margin: 0 1px;
             border-radius: 2px;
             transition: height 0.1s ease;
         }
-
-        .stop-btn {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 20px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .stop-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
-        }
-
         .permission-denied {
-            color: #dc3545;
+            color: var(--error);
             background: #ffe6e6;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
             border: 1px solid #ffcccc;
         }
-
-        .supported-formats {
-            text-align: center;
-            color: #888;
-            font-size: 0.9rem;
-            margin-top: 15px;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .container {
-                padding: 20px;
+                padding: 18px 4px 18px 4px;
             }
-            
             h1 {
-                font-size: 2rem;
+                font-size: 1.3rem;
             }
-            
             .upload-area, .record-area {
-                padding: 20px;
+                padding: 18px 4px;
             }
-            
-            .upload-icon, .record-icon {
-                font-size: 3rem;
-            }
-            
             .tab-btn {
-                padding: 10px 15px;
-                font-size: 0.9rem;
+                font-size: 0.95rem;
+                padding: 10px 0;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Speech to Text</h1>
-        
+        <h1>🗣️ Speech to Text</h1>
         <div class="tab-container">
             <div class="tab-buttons">
                 <button class="tab-btn active" onclick="switchTab('upload')">📁 Upload File</button>
                 <button class="tab-btn" onclick="switchTab('record')">🎤 Record Voice</button>
             </div>
         </div>
-
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">🎵</div>
             <div class="upload-text">Click to select or drag & drop your audio file</div>
             <button class="upload-btn" type="button" onclick="document.getElementById('fileInput').click()">
                 Choose File
             </button>
-            <input type="file" id="fileInput" class="file-input" accept=".wav,.mp3,.m4a,.flac,.ogg" />
+            <input type="file" id="fileInput" class="file-input" accept=".wav,.mp3,.m4a,.flac,.ogg,.webm" />
         </div>
-
         <div class="record-area" id="recordArea" style="display: none;">
             <div class="record-icon" id="recordIcon">🎤</div>
             <div class="record-text" id="recordText">Click to start recording</div>
@@ -398,20 +290,16 @@
                 <button class="stop-btn" onclick="stopRecording()">Stop Recording</button>
             </div>
         </div>
-
         <div class="file-info" id="fileInfo">
             <strong>Selected file:</strong> <span id="fileName"></span>
         </div>
-
         <div class="supported-formats">
             Supported formats: WAV, MP3, M4A, FLAC, OGG, WebM
         </div>
-
         <div class="loading" id="loading">
             <div class="spinner"></div>
             <p>Processing your audio... This may take a moment.</p>
         </div>
-
         <div class="result" id="result">
             <h3>Transcription Result:</h3>
             <div class="transcription-text" id="transcriptionText"></div>
@@ -422,7 +310,6 @@
             </div>
         </div>
     </div>
-
     <script>
         const uploadArea = document.getElementById('uploadArea');
         const recordArea = document.getElementById('recordArea');
