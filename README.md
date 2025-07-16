@@ -14,6 +14,10 @@ A modern web application for transcribing speech from audio files or live voice 
 - 🎧 Playback your audio
 - Responsive, modern dark purple design
 
+## Model
+
+This app uses the [facebook/wav2vec2-base-960h](https://huggingface.co/facebook/wav2vec2-base-960h) model from Hugging Face for English speech recognition.
+
 ## Setup & Installation
 
 ### 1. Clone the repository
