@@ -1,0 +1,255 @@
+/* Main stylesheet for Speech to Text App */
+:root {
+    --primary: #5f259f; /* dark purple, matches the icon */
+    --secondary: #7c3aed; /* lighter purple accent */
+    --accent: #a78bfa; /* soft purple accent */
+    --background: #2a1835; /* very dark purple background */
+    --surface: #3b2355;
+    --error: #ff6b6b;
+    --success: #43aa8b;
+    --text-main: #f6f9fb;
+    --text-light: #cfc6e4;
+}
+html, body {
+    height: 100%;
+}
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--background) 100%);
+    font-family: 'Montserrat', 'Roboto', Arial, sans-serif;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.container {
+    background: var(--surface);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(95, 37, 159, 0.18);
+    padding: 48px 36px 36px 36px;
+    max-width: 480px;
+    width: 100%;
+    margin: 40px 0;
+}
+h1 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 2.2rem;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 32px;
+    letter-spacing: 1px;
+}
+.tab-container {
+    margin-bottom: 24px;
+}
+.tab-buttons {
+    display: flex;
+    background: var(--background);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.tab-btn {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    background: none;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.tab-btn.active {
+    background: var(--secondary);
+    color: #fff;
+}
+.tab-btn:not(.active):hover {
+    background: var(--accent);
+    color: var(--primary);
+}
+.upload-area, .record-area {
+    border: 2px dashed var(--secondary);
+    border-radius: 16px;
+    padding: 36px 20px;
+    text-align: center;
+    margin-bottom: 24px;
+    background: var(--background);
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+.upload-area.dragover, .record-area.recording {
+    border-color: var(--accent);
+    background: var(--surface);
+}
+.upload-icon, .record-icon {
+    font-size: 3.2rem;
+    color: var(--accent);
+    margin-bottom: 16px;
+}
+.record-area.recording .record-icon {
+    color: var(--error);
+    animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+.upload-text, .record-text {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    margin-bottom: 18px;
+}
+.upload-btn, .record-btn, .stop-btn, .copy-btn {
+    background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 24px;
+    font-size: 1rem;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    margin-bottom: 0;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,180,216,0.08);
+}
+.upload-btn:hover, .record-btn:hover, .stop-btn:hover, .copy-btn:hover {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+}
+.file-input {
+    display: none;
+}
+.file-info {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--accent);
+    border-radius: 10px;
+    color: var(--primary);
+    font-size: 1rem;
+    display: none;
+}
+.supported-formats {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+.loading {
+    display: none;
+    text-align: center;
+    margin: 18px 0;
+    color: var(--text-light);
+}
+.spinner {
+    border: 4px solid #4b2a6a;
+    border-top: 4px solid var(--accent);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.result {
+    margin-top: 24px;
+    padding: 20px 18px;
+    background: var(--background);
+    border-radius: 16px;
+    border-left: 5px solid var(--secondary);
+    display: none;
+}
+.result h3 {
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+.transcription-text {
+    font-size: 1.08rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    background: var(--surface);
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    min-height: 80px;
+    white-space: pre-wrap;
+}
+.result.error, .error {
+    background: #ffe6e6;
+    border-left-color: var(--error);
+}
+.audio-controls {
+    margin-top: 12px;
+    display: none;
+    color: var(--text-light);
+}
+audio {
+    width: 100%;
+    margin-top: 8px;
+}
+.recording-controls {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 12px;
+}
+.recording-time {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+.recording-visualizer {
+    height: 48px;
+    background: var(--surface);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e0e0e0;
+    position: relative;
+    overflow: hidden;
+}
+.visualizer-bar {
+    width: 4px;
+    background: var(--secondary);
+    margin: 0 1px;
+    border-radius: 2px;
+    transition: height 0.1s ease;
+}
+.permission-denied {
+    color: var(--error);
+    background: #ffe6e6;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    border: 1px solid #ffcccc;
+}
+@media (max-width: 600px) {
+    .container {
+        padding: 18px 4px 18px 4px;
+    }
+    h1 {
+        font-size: 1.3rem;
+    }
+    .upload-area, .record-area {
+        padding: 18px 4px;
+    }
+    .tab-btn {
+        font-size: 0.95rem;
+        padding: 10px 0;
+    }
+}
