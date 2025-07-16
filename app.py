@@ -7,6 +7,7 @@ import tempfile
 import logging
 import soundfile as sf
 import io
+import subprocess
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -70,6 +71,14 @@ def transcribe_audio(audio_path):
         logger.error(f"Error transcribing audio: {e}")
         return f"Error: {str(e)}"
 
+def convert_webm_to_wav(webm_path):
+    wav_path = webm_path.rsplit('.', 1)[0] + '.wav'
+    try:
+        subprocess.run(['ffmpeg', '-y', '-i', webm_path, wav_path], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return wav_path
+    except Exception as e:
+        raise RuntimeError(f"ffmpeg conversion failed: {e}")
+
 @app.route('/')
 def index():
     """Main page with upload form"""
@@ -86,7 +95,7 @@ def transcribe():
         return jsonify({'error': 'No file selected'}), 400
     
     # Check file extension
-    allowed_extensions = {'.wav', '.mp3', '.m4a', '.flac', '.ogg'}
+    allowed_extensions = {'.wav', '.mp3', '.m4a', '.flac', '.ogg', '.webm'}
     file_ext = os.path.splitext(file.filename)[1].lower()
     if file_ext not in allowed_extensions:
         return jsonify({'error': f'Unsupported file type. Allowed: {", ".join(allowed_extensions)}'}), 400
@@ -97,8 +106,18 @@ def transcribe():
             file.save(tmp_file.name)
             tmp_path = tmp_file.name
         
-        # Transcribe audio
-        transcription = transcribe_audio(tmp_path)
+        # If .webm, convert to .wav before transcription
+        if file_ext == '.webm':
+            try:
+                wav_path = convert_webm_to_wav(tmp_path)
+                transcription = transcribe_audio(wav_path)
+                os.unlink(wav_path)
+            except Exception as e:
+                logger.error(f"Error converting webm to wav: {e}")
+                os.unlink(tmp_path)
+                return jsonify({'error': f'Could not process .webm file: {e}'}), 400
+        else:
+            transcription = transcribe_audio(tmp_path)
         
         # Clean up temporary file
         os.unlink(tmp_path)

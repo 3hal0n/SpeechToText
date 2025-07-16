@@ -178,6 +178,163 @@
             margin-top: 10px;
         }
 
+        .tab-container {
+            margin-bottom: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .record-area {
+            border: 3px dashed #28a745;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .record-area.recording {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .record-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .record-area.recording .record-icon {
+            color: #dc3545;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .record-text {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .record-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .record-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .recording-controls {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .recording-time {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+
+        .recording-visualizer {
+            height: 60px;
+            background: #fff;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualizer-bar {
+            width: 4px;
+            background: #667eea;
+            margin: 0 1px;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .stop-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stop-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .permission-denied {
+            color: #dc3545;
+            background: #ffe6e6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #ffcccc;
+        }
+
         .supported-formats {
             text-align: center;
             color: #888;
@@ -194,12 +351,17 @@
                 font-size: 2rem;
             }
             
-            .upload-area {
+            .upload-area, .record-area {
                 padding: 20px;
             }
             
-            .upload-icon {
+            .upload-icon, .record-icon {
                 font-size: 3rem;
+            }
+            
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -208,6 +370,13 @@
     <div class="container">
         <h1>🎤 Speech to Text</h1>
         
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('upload')">📁 Upload File</button>
+                <button class="tab-btn" onclick="switchTab('record')">🎤 Record Voice</button>
+            </div>
+        </div>
+
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">🎵</div>
             <div class="upload-text">Click to select or drag & drop your audio file</div>
@@ -217,12 +386,25 @@
             <input type="file" id="fileInput" class="file-input" accept=".wav,.mp3,.m4a,.flac,.ogg" />
         </div>
 
+        <div class="record-area" id="recordArea" style="display: none;">
+            <div class="record-icon" id="recordIcon">🎤</div>
+            <div class="record-text" id="recordText">Click to start recording</div>
+            <button class="record-btn" id="recordBtn" onclick="toggleRecording()">
+                Start Recording
+            </button>
+            <div class="recording-controls" id="recordingControls" style="display: none;">
+                <div class="recording-time" id="recordingTime">00:00</div>
+                <div class="recording-visualizer" id="visualizer"></div>
+                <button class="stop-btn" onclick="stopRecording()">Stop Recording</button>
+            </div>
+        </div>
+
         <div class="file-info" id="fileInfo">
             <strong>Selected file:</strong> <span id="fileName"></span>
         </div>
 
         <div class="supported-formats">
-            Supported formats: WAV, MP3, M4A, FLAC, OGG
+            Supported formats: WAV, MP3, M4A, FLAC, OGG, WebM
         </div>
 
         <div class="loading" id="loading">
@@ -243,6 +425,7 @@
 
     <script>
         const uploadArea = document.getElementById('uploadArea');
+        const recordArea = document.getElementById('recordArea');
         const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
         const fileName = document.getElementById('fileName');
@@ -251,6 +434,221 @@
         const transcriptionText = document.getElementById('transcriptionText');
         const audioControls = document.getElementById('audioControls');
         const audioPlayer = document.getElementById('audioPlayer');
+
+        // Recording variables
+        let mediaRecorder;
+        let recordedChunks = [];
+        let recordingTimer;
+        let recordingStartTime;
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let animationId;
+
+        // Tab switching
+        function switchTab(tab) {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            if (tab === 'upload') {
+                document.querySelector('.tab-btn:first-child').classList.add('active');
+                uploadArea.style.display = 'block';
+                recordArea.style.display = 'none';
+            } else {
+                document.querySelector('.tab-btn:last-child').classList.add('active');
+                uploadArea.style.display = 'none';
+                recordArea.style.display = 'block';
+            }
+            
+            // Clear previous results
+            result.style.display = 'none';
+            fileInfo.style.display = 'none';
+        }
+
+        // Recording functions
+        async function toggleRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 16000
+                    } 
+                });
+                
+                recordedChunks = [];
+                // Try to use OGG recording if supported
+                let mimeType = '';
+                if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    mimeType = 'audio/ogg;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else {
+                    mimeType = '';
+                }
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: mimeType
+                });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    processRecordedAudio(blob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                startRecordingUI();
+                setupAudioVisualization(stream);
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                showPermissionError();
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                stopRecordingUI();
+                if (audioContext) {
+                    audioContext.close();
+                }
+            }
+        }
+
+        function startRecordingUI() {
+            const recordBtn = document.getElementById('recordBtn');
+            const recordingControls = document.getElementById('recordingControls');
+            const recordText = document.getElementById('recordText');
+            
+            recordArea.classList.add('recording');
+            recordBtn.style.display = 'none';
+            recordingControls.style.display = 'block';
+            recordText.textContent = 'Recording... Speak now!';
+            
+            // Start timer
+            recordingStartTime = Date.now();
+            recordingTimer = setInterval(updateRecordingTime, 100);
+        }
+
+        function stopRecordingUI() {
+            const recordBtn = document.getElementById('recordBtn');
+            const recordingControls = document.getElementById('recordingControls');
+            const recordText = document.getElementById('recordText');
+            
+            recordArea.classList.remove('recording');
+            recordBtn.style.display = 'inline-block';
+            recordingControls.style.display = 'none';
+            recordText.textContent = 'Click to start recording';
+            
+            // Stop timer
+            clearInterval(recordingTimer);
+            
+            // Stop visualization
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function updateRecordingTime() {
+            const elapsed = Date.now() - recordingStartTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('recordingTime').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function setupAudioVisualization(stream) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            
+            createVisualizerBars();
+            visualize();
+        }
+
+        function createVisualizerBars() {
+            const visualizer = document.getElementById('visualizer');
+            visualizer.innerHTML = '';
+            
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.height = '10px';
+                visualizer.appendChild(bar);
+            }
+        }
+
+        function visualize() {
+            const bars = document.querySelectorAll('.visualizer-bar');
+            
+            function draw() {
+                if (!analyser) return;
+                
+                analyser.getByteFrequencyData(dataArray);
+                
+                bars.forEach((bar, index) => {
+                    const value = dataArray[index * 2] || 0;
+                    const height = (value / 255) * 50 + 5;
+                    bar.style.height = `${height}px`;
+                });
+                
+                animationId = requestAnimationFrame(draw);
+            }
+            
+            draw();
+        }
+
+        function processRecordedAudio(blob) {
+            // Convert blob to file
+            const file = new File([blob], 'recorded-audio.webm', { type: 'audio/webm' });
+            
+            // Show file info
+            fileName.textContent = 'recorded-audio.webm';
+            fileInfo.style.display = 'block';
+            
+            // Create audio URL for playback
+            const audioUrl = URL.createObjectURL(blob);
+            audioPlayer.src = audioUrl;
+            audioControls.style.display = 'block';
+            
+            // Upload and transcribe
+            uploadFile(file);
+        }
+
+        function showPermissionError() {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'permission-denied';
+            errorDiv.innerHTML = `
+                <strong>Microphone access denied!</strong><br>
+                Please allow microphone access and try again. You can also upload an audio file instead.
+            `;
+            recordArea.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
 
         // Drag and drop functionality
         uploadArea.addEventListener('dragover', (e) => {
@@ -280,13 +678,13 @@
 
         function handleFile(file) {
             // Validate file type
-            const allowedTypes = ['audio/wav', 'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/flac', 'audio/ogg'];
-            const allowedExtensions = ['.wav', '.mp3', '.m4a', '.flac', '.ogg'];
+            const allowedTypes = ['audio/wav', 'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/flac', 'audio/ogg', 'audio/webm'];
+            const allowedExtensions = ['.wav', '.mp3', '.m4a', '.flac', '.ogg', '.webm'];
             
             const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
             
             if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-                alert('Please select a valid audio file (WAV, MP3, M4A, FLAC, or OGG)');
+                alert('Please select a valid audio file (WAV, MP3, M4A, FLAC, OGG, or WebM)');
                 return;
             }
 
