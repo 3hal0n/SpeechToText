@@ -1,11 +1,12 @@
 from flask import Flask, request, render_template, jsonify
 import os
-import librosa
 import torch
 import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 import tempfile
 import logging
+import soundfile as sf
+import io
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -33,8 +34,22 @@ def load_model():
 def transcribe_audio(audio_path):
     """Transcribe audio file to text"""
     try:
-        # Load audio file
-        audio, sampling_rate = librosa.load(audio_path, sr=16000)
+        # Load audio file using soundfile (compatible with Python 3.13)
+        audio, sampling_rate = sf.read(audio_path)
+        
+        # Ensure audio is mono
+        if len(audio.shape) > 1:
+            audio = audio.mean(axis=1)
+        
+        # Resample to 16kHz if needed
+        if sampling_rate != 16000:
+            # Simple resampling (you might want to use scipy.signal.resample for better quality)
+            ratio = 16000 / sampling_rate
+            audio = np.interp(
+                np.arange(0, len(audio), 1/ratio),
+                np.arange(0, len(audio)),
+                audio
+            )
         
         # Process audio
         input_values = processor(audio, sampling_rate=16000, return_tensors="pt", padding=True)
