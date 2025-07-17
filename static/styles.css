@@ -238,6 +238,34 @@ audio {
     margin-top: 10px;
     border: 1px solid #ffcccc;
 }
+
+/* Language selector styles */
+#langSelect, label[for="langSelect"] {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+#langSelect {
+    background: var(--background);
+    color: var(--text-main);
+    border: 2px solid var(--secondary);
+    border-radius: 16px;
+    padding: 8px 18px;
+    margin-left: 8px;
+    margin-top: 0;
+    margin-bottom: 0;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(95, 37, 159, 0.08);
+    appearance: none;
+    cursor: pointer;
+}
+#langSelect:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 18px 4px 18px 4px;
@@ -251,5 +279,10 @@ audio {
     .tab-btn {
         font-size: 0.95rem;
         padding: 10px 0;
+    }
+    #langSelect {
+        width: 100%;
+        margin-top: 8px;
+        margin-left: 0;
     }
 }

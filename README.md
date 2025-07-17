@@ -4,25 +4,33 @@
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-lightgrey?logo=flask)](https://flask.palletsprojects.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modern web application for transcribing speech from audio files or live voice recordings using OpenAI's Whisper large-v3 model (via Hugging Face Transformers). Features a beautiful dark purple UI, drag-and-drop upload, browser-based recording, and Sinhala speech recognition support.
+A modern web application for transcribing speech from audio files or live voice recordings using state-of-the-art models from Hugging Face Transformers. Features a beautiful dark purple UI, drag-and-drop upload, browser-based recording, and both Sinhala and English speech recognition support.
 
 ## Features
 - 🎤 Record voice directly in your browser (with waveform visualization)
 - 📁 Upload audio files (WAV, MP3, M4A, FLAC, OGG, WebM)
-- 📝 Instant speech-to-text transcription using Whisper large-v3 (multilingual, including Sinhala)
+- 📝 Instant speech-to-text transcription using:
+  - **Whisper (small)** for Sinhala (සිංහල)
+  - **wav2vec2 (facebook/wav2vec2-base-960h)** for English
+- 🌐 Language selector in the UI to choose between Sinhala and English
 - 📋 Copy transcription to clipboard
 - 🎧 Playback your audio
 - Responsive, modern dark purple design
 
-## Sinhala Support
+## Language & Model Selection
 
-This app now supports Sinhala (සිංහල) speech recognition using OpenAI's Whisper large-v3 model. Just upload or record Sinhala audio and receive Sinhala text transcription. Whisper also supports many other languages—see [Whisper documentation](https://github.com/openai/whisper) for details.
+This app supports both Sinhala and English speech recognition:
 
-**Note:** Whisper large-v3 is a very large model. For best performance, use a machine with a modern GPU. CPU inference is possible but much slower.
+- **Sinhala (සිංහල):** Uses OpenAI's Whisper (small) model for high-quality multilingual transcription.
+- **English:** Uses Facebook's wav2vec2-base-960h model for fast and accurate English transcription.
 
-## Model
+**How to use:**
+- Select your language (Sinhala or English) from the dropdown at the top of the app before uploading or recording audio. The app will automatically use the best model for your chosen language.
 
-This app uses the [openai/whisper-large-v3](https://huggingface.co/openai/whisper-large-v3) model from Hugging Face for multilingual (including Sinhala) speech recognition.
+## Model Details
+
+- **Sinhala:** [openai/whisper-small](https://huggingface.co/openai/whisper-small) (multilingual, including Sinhala)
+- **English:** [facebook/wav2vec2-base-960h](https://huggingface.co/facebook/wav2vec2-base-960h) (English only)
 
 ## Setup & Installation
 
@@ -55,10 +63,11 @@ python app.py
 Visit [http://localhost:5000](http://localhost:5000) in your browser.
 
 ## Usage
-- **Upload**: Drag and drop or select an audio file.
-- **Record**: Use the "Record Voice" tab to record directly in your browser.
-- **Supported formats**: `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.webm`
-- **Copy**: Click "Copy Text" to copy the transcription.
+- **Select Language:** Use the dropdown at the top to choose Sinhala or English.
+- **Upload:** Drag and drop or select an audio file.
+- **Record:** Use the "Record Voice" tab to record directly in your browser.
+- **Supported formats:** `.wav`, `.mp3`, `.m4a`, `.flac`, `.ogg`, `.webm`
+- **Copy:** Click "Copy Text" to copy the transcription.
 
 ## Project Structure
 ```
@@ -82,9 +91,9 @@ speechToText/
 - ffmpeg (system dependency)
 
 ## Troubleshooting
-- **ffmpeg not found**: Make sure ffmpeg is installed and in your system PATH. Restart your terminal after installation.
-- **Model loading issues**: Ensure you have a stable internet connection for the first run (downloads model weights).
-- **Audio not transcribing**: Check browser permissions for microphone and supported formats.
+- **ffmpeg not found:** Make sure ffmpeg is installed and in your system PATH. Restart your terminal after installation.
+- **Model loading issues:** Ensure you have a stable internet connection for the first run (downloads model weights).
+- **Audio not transcribing:** Check browser permissions for microphone and supported formats.
 
 ## Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
