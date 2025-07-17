@@ -12,6 +12,13 @@
 <body>
     <div class="container">
         <h1>🗣️ Speech to Text</h1>
+        <div style="margin-bottom: 1em;">
+            <label for="langSelect"><strong>Language:</strong></label>
+            <select id="langSelect">
+                <option value="si">Sinhala (Whisper)</option>
+                <option value="en">English (wav2vec2)</option>
+            </select>
+        </div>
         <div class="tab-container">
             <div class="tab-buttons">
                 <button class="tab-btn active" onclick="switchTab('upload')">📁 Upload File</button>
@@ -339,7 +346,9 @@
         function uploadFile(file) {
             const formData = new FormData();
             formData.append('audio', file);
-
+            // Add selected language
+            const lang = document.getElementById('langSelect').value;
+            formData.append('lang', lang);
             // Show loading
             loading.style.display = 'block';
             result.style.display = 'none';

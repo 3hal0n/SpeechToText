@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, jsonify
 import os
 import torch
 import numpy as np
-from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
+from transformers import pipeline
 import tempfile
 import logging
 import soundfile as sf
@@ -16,57 +16,56 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Global variables for model and processor
-model = None
-processor = None
+# Global variables for the pipelines
+asr_pipeline_whisper = None
+asr_pipeline_wav2vec = None
 
-def load_model():
-    """Load the Wav2Vec2 model and processor"""
-    global model, processor
+def load_models():
+    global asr_pipeline_whisper, asr_pipeline_wav2vec
     try:
-        logger.info("Loading Wav2Vec2 model...")
-        processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
-        model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-        logger.info("Model loaded successfully!")
+        if torch.cuda.is_available():
+            device_str = f"cuda ({torch.cuda.get_device_name(0)})"
+            device_id = 0
+        else:
+            device_str = "cpu"
+            device_id = -1
+        logger.info(f"Loading Whisper small model for Sinhala on {device_str}...")
+        asr_pipeline_whisper = pipeline(
+            "automatic-speech-recognition",
+            model="openai/whisper-small",
+            device=device_id,
+            generate_kwargs={"language": "si"}
+        )
+        logger.info("Whisper model loaded successfully!")
+        logger.info(f"Loading wav2vec2 model for English on {device_str}...")
+        asr_pipeline_wav2vec = pipeline(
+            "automatic-speech-recognition",
+            model="facebook/wav2vec2-base-960h",
+            device=device_id
+        )
+        logger.info("wav2vec2 model loaded successfully!")
     except Exception as e:
-        logger.error(f"Error loading model: {e}")
+        logger.error(f"Error loading ASR models: {e}")
         raise
 
-def transcribe_audio(audio_path):
-    """Transcribe audio file to text"""
+def transcribe_audio(audio_path, lang="si"):
     try:
-        # Load audio file using soundfile (compatible with Python 3.13)
         audio, sampling_rate = sf.read(audio_path)
-        
-        # Ensure audio is mono
         if len(audio.shape) > 1:
             audio = audio.mean(axis=1)
-        
-        # Resample to 16kHz if needed
         if sampling_rate != 16000:
-            # Simple resampling (you might want to use scipy.signal.resample for better quality)
-            ratio = 16000 / sampling_rate
-            audio = np.interp(
-                np.arange(0, len(audio), 1/ratio),
-                np.arange(0, len(audio)),
-                audio
-            )
-        
-        # Process audio
-        input_values = processor(audio, sampling_rate=16000, return_tensors="pt", padding=True)
-        
-        # Get logits from model
-        with torch.no_grad():
-            logits = model(input_values.input_values).logits
-        
-        # Get predicted ids
-        predicted_ids = torch.argmax(logits, dim=-1)
-        
-        # Decode to text
-        transcription = processor.batch_decode(predicted_ids)[0]
-        
-        return transcription.lower()
-    
+            import scipy.signal
+            number_of_samples = round(len(audio) * float(16000) / sampling_rate)
+            audio = scipy.signal.resample(audio, number_of_samples)
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+            sf.write(tmp_wav.name, audio, 16000)
+            if lang == "en":
+                result = asr_pipeline_wav2vec(tmp_wav.name)
+            else:
+                result = asr_pipeline_whisper(tmp_wav.name, generate_kwargs={"language": "si"})
+        os.unlink(tmp_wav.name)
+        return result["text"]
     except Exception as e:
         logger.error(f"Error transcribing audio: {e}")
         return f"Error: {str(e)}"
@@ -89,44 +88,34 @@ def transcribe():
     """Handle audio file upload and transcription"""
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided'}), 400
-    
     file = request.files['audio']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-    
-    # Check file extension
     allowed_extensions = {'.wav', '.mp3', '.m4a', '.flac', '.ogg', '.webm'}
     file_ext = os.path.splitext(file.filename)[1].lower()
     if file_ext not in allowed_extensions:
         return jsonify({'error': f'Unsupported file type. Allowed: {", ".join(allowed_extensions)}'}), 400
-    
+    lang = request.form.get('lang', 'si')
     try:
-        # Save uploaded file to temporary location
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             file.save(tmp_file.name)
             tmp_path = tmp_file.name
-        
-        # If .webm, convert to .wav before transcription
         if file_ext == '.webm':
             try:
                 wav_path = convert_webm_to_wav(tmp_path)
-                transcription = transcribe_audio(wav_path)
+                transcription = transcribe_audio(wav_path, lang=lang)
                 os.unlink(wav_path)
             except Exception as e:
                 logger.error(f"Error converting webm to wav: {e}")
                 os.unlink(tmp_path)
                 return jsonify({'error': f'Could not process .webm file: {e}'}), 400
         else:
-            transcription = transcribe_audio(tmp_path)
-        
-        # Clean up temporary file
+            transcription = transcribe_audio(tmp_path, lang=lang)
         os.unlink(tmp_path)
-        
         return jsonify({
             'transcription': transcription,
             'filename': file.filename
         })
-    
     except Exception as e:
         logger.error(f"Error processing request: {e}")
         return jsonify({'error': str(e)}), 500
@@ -134,14 +123,10 @@ def transcribe():
 @app.route('/health')
 def health():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'model_loaded': model is not None})
+    return jsonify({'status': 'healthy', 'model_loaded': asr_pipeline_whisper is not None and asr_pipeline_wav2vec is not None})
 
 if __name__ == '__main__':
-    # Load model on startup
-    load_model()
-    
-    # Create templates directory if it doesn't exist
+    # Load models on startup
+    load_models()
     os.makedirs('templates', exist_ok=True)
-    
-    # Run the app
     app.run(debug=True, host='0.0.0.0', port=5000)

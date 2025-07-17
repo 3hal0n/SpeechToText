@@ -4,15 +4,25 @@
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-lightgrey?logo=flask)](https://flask.palletsprojects.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modern web application for transcribing speech from audio files or live voice recordings using Hugging Face's Wav2Vec2 model. Features a beautiful dark purple UI, drag-and-drop upload, and browser-based recording.
+A modern web application for transcribing speech from audio files or live voice recordings using OpenAI's Whisper large-v3 model (via Hugging Face Transformers). Features a beautiful dark purple UI, drag-and-drop upload, browser-based recording, and Sinhala speech recognition support.
 
 ## Features
 - 🎤 Record voice directly in your browser (with waveform visualization)
 - 📁 Upload audio files (WAV, MP3, M4A, FLAC, OGG, WebM)
-- 📝 Instant speech-to-text transcription using Wav2Vec2
+- 📝 Instant speech-to-text transcription using Whisper large-v3 (multilingual, including Sinhala)
 - 📋 Copy transcription to clipboard
 - 🎧 Playback your audio
 - Responsive, modern dark purple design
+
+## Sinhala Support
+
+This app now supports Sinhala (සිංහල) speech recognition using OpenAI's Whisper large-v3 model. Just upload or record Sinhala audio and receive Sinhala text transcription. Whisper also supports many other languages—see [Whisper documentation](https://github.com/openai/whisper) for details.
+
+**Note:** Whisper large-v3 is a very large model. For best performance, use a machine with a modern GPU. CPU inference is possible but much slower.
+
+## Model
+
+This app uses the [openai/whisper-large-v3](https://huggingface.co/openai/whisper-large-v3) model from Hugging Face for multilingual (including Sinhala) speech recognition.
 
 ## Setup & Installation
 
